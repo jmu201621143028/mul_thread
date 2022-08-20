@@ -4,21 +4,23 @@
 
 
 pthread_mutex_t mutex1 = PTHREAD_MUTEX_INITIALIZER;
+pthread_cond_t condition_cond = PTHREAD_COND_INITIALIZER;
+
 int n = 1; int count = 0;
 
 void TProduce()
 {
     while (1)
     {
-retry:
         pthread_mutex_lock(&mutex1);
         if(n == count)
         {
-            pthread_mutex_unlock(&mutex1);
-            goto retry;
+            // pthread_mutex_unlock(&mutex1);
+            pthread_cond_wait(&condition_cond, &mutex1);
         }
         count++;
         printf("(");
+        pthread_cond_signal(&condition_cond);
         pthread_mutex_unlock(&mutex1);
     }
 }
@@ -27,15 +29,15 @@ void TConsume()
 {
     while (1)
     {
-retry:
         pthread_mutex_lock(&mutex1);
         if(0 == count)
         {
-            pthread_mutex_unlock(&mutex1);
-            goto retry;
+            //pthread_mutex_unlock(&mutex1);
+            pthread_cond_wait(&condition_cond, &mutex1);
         }
         count--;
         printf(")");
+        pthread_cond_signal(&condition_cond);
         pthread_mutex_unlock(&mutex1);
     }
 }
