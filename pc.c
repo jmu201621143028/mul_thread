@@ -1,11 +1,24 @@
 #include <stdio.h>
 #include <pthread.h>
 
+
+pthread_mutex_t mutex1 = PTHREAD_MUTEX_INITIALIZER;
+int n = 1; int count = 0;
+
 void TProduce()
 {
     while (1)
     {
+retry:
+        pthread_mutex_lock(&mutex1);
+        if(n == count)
+        {
+            pthread_mutex_unlock(&mutex1);
+            goto retry;
+        }
+        count++;
         printf("(");
+        pthread_mutex_unlock(&mutex1);
     }
 }
 
@@ -13,7 +26,16 @@ void TConsume()
 {
     while (1)
     {
+retry:
+        pthread_mutex_lock(&mutex1);
+        if(0 == count)
+        {
+            pthread_mutex_unlock(&mutex1);
+            goto retry;
+        }
+        count--;
         printf(")");
+        pthread_mutex_unlock(&mutex1);
     }
 }
 
